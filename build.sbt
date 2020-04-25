@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "Slack Dumper",
     libraryDependencies += scalaTest % Test,
-    libraryDependencies += "com.github.slack-scala-client" %% "slack-scala-client" % "0.2.10-SNAPSHOT"
+    libraryDependencies += "com.github.slack-scala-client" %% "slack-scala-client" % "0.2.10-SNAPSHOT",
+    libraryDependencies += "commons-codec" % "commons-codec" % "1.14"
   )
 

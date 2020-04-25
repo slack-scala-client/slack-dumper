@@ -13,8 +13,4 @@ object Main extends App {
 
   val client = new SlackDumperClient(token, SlackApiClient.defaultSlackApiBaseUri, 5.seconds)
   val selfId = client.state.self.id
-
-  client.onEvent { event =>
-    system.log.info("Received new event: {}", event)
-  }
 }
