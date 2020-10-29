@@ -11,6 +11,6 @@ object Main extends App {
   implicit val system = ActorSystem("slack")
   implicit val ec = system.dispatcher
 
-  val client = new SlackDumperClient(token, SlackApiClient.defaultSlackApiBaseUri, 5.seconds)
+  val client = new SlackDumperClient(token, SlackApiClient.defaultSlackApiBaseUri, 50.seconds)
   val selfId = client.state.self.id
 }
