@@ -50,6 +50,8 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
             case JsString(SensitiveIdentifiers(s)) =>
               val transformed = s.charAt(0) + transform(s.substring(1))
               (f._1, JsString(transformed))
+            case o: JsObject =>
+              (f._1, anonymize(o))
             case _ =>
               f
           }
