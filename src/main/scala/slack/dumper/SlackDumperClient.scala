@@ -23,7 +23,12 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
   extends SlackRtmConnectionActor(apiClient, state) {
 
   val SensitiveIdentifiers = "([A-Z][A-Z0-9]{5,15})".r
+  val Url = "(http.*)".r
   val salt = scala.util.Random.nextString(10)
+
+  val outputDirectory = java.nio.file.Files.createTempDirectory("slack-dumper").toFile
+
+  println(s"Storing outputs to ${outputDirectory.getAbsolutePath}")
 
   override def onTextMessageReceive(message: TextMessage): Unit = {
     val payload = message.getStrictText
@@ -32,7 +37,13 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
     val typ = (payloadJson \ "type").asOpt[String]
 
     val anonymized = anonymize(payloadJson)
-    println(s">>>>>>> $typ, $anonymized")
+
+    typ.foreach { someType =>
+      println(s">>>>>>> $someType, $anonymized")
+      val writer = new java.io.PrintWriter(new java.io.File(outputDirectory, s"${someType}.json"))
+      writer.write(anonymized.toString)
+      writer.close()
+    }
   }
 
   def anonymize(playloadJson: JsValue): JsValue = {
@@ -45,17 +56,17 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
     playloadJson match {
       case a: JsArray => Json.arr(a.value.map(anonymize))
       case o: JsObject =>
-        JsObject(o.fields.map { f =>
-          f._2 match {
-            case JsString(SensitiveIdentifiers(s)) =>
-              val transformed = s.charAt(0) + transform(s.substring(1))
-              (f._1, JsString(transformed))
-            case o: JsObject =>
-              (f._1, anonymize(o))
-            case _ =>
-              f
-          }
-        })
+        JsObject(o.fields.map {
+          case (fieldName, JsString(_)) if fieldName.contains("name") =>
+            (fieldName, JsString("Some Name"))
+          case (fieldName, JsString(SensitiveIdentifiers(s))) =>
+            val transformed = s.charAt(0) + transform(s.substring(1))
+            (fieldName, JsString(transformed))
+          case (fieldName, JsString(Url(s))) =>
+            (fieldName, JsString("https://example.com"))
+          case (fieldName, o: JsObject) => (fieldName, anonymize(o))
+          case (x, y) => (x, y)
+         })
       case x => throw new IllegalArgumentException(x.toString)
     }
   }
