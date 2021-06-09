@@ -35,12 +35,14 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
     val payloadJson = Json.parse(payload)
 
     val typ = (payloadJson \ "type").asOpt[String]
+    val subtype = (payloadJson \ "subtype").asOpt[String].map(x => "-" + x).getOrElse("")
 
     val anonymized = anonymize(payloadJson)
 
     typ.foreach { someType =>
-      println(s">>>>>>> $someType, $anonymized")
-      val writer = new java.io.PrintWriter(new java.io.File(outputDirectory, s"${someType}.json"))
+      val messageTypeIdentifier = someType + subtype
+      println(s">>>>>>> $messageTypeIdentifier, $anonymized")
+      val writer = new java.io.PrintWriter(new java.io.File(outputDirectory, s"${messageTypeIdentifier}.json"))
       writer.write(anonymized.toString)
       writer.close()
     }
