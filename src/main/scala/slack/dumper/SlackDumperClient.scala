@@ -59,6 +59,7 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
       case a: JsArray => Json.arr(a.value.map(anonymize))
       case o: JsObject =>
         JsObject(o.fields.map {
+          case ("phone", JsString(_)) => ("phone", "123-4567-890")
           case (fieldName, JsString(_)) if fieldName.contains("name") =>
             (fieldName, JsString("Some Name"))
           case (fieldName, JsString(SensitiveIdentifiers(s))) =>
@@ -66,9 +67,9 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
             (fieldName, JsString(transformed))
           case (fieldName, JsString(Url(s))) =>
             (fieldName, JsString("https://example.com"))
-          case (fieldName, o: JsObject) => (fieldName, anonymize(o))
-          case (x, y) => (x, y)
-         })
+          case (fieldName: String, o: JsObject) => (fieldName, anonymize(o))
+          case (x: String, y: JsValue) => (x, y)
+         }.asInstanceOf[Seq[(String, JsValue)]])
       case x => throw new IllegalArgumentException(x.toString)
     }
   }
