@@ -59,7 +59,7 @@ class DumpingSlackRtmConnectionActor(apiClient: BlockingSlackApiClient, state: R
       case a: JsArray => Json.arr(a.value.map(anonymize))
       case o: JsObject =>
         JsObject(o.fields.map {
-          case ("phone", JsString(_)) => ("phone", "123-4567-890")
+          case ("phone", JsString(_)) => ("phone", JsString("123-4567-890"))
           case (fieldName, JsString(_)) if fieldName.contains("name") =>
             (fieldName, JsString("Some Name"))
           case (fieldName, JsString(SensitiveIdentifiers(s))) =>
